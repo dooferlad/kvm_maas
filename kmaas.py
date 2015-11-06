@@ -272,6 +272,10 @@ def configure():
     with open(os.path.expanduser('~/.config/kvm_maas.yaml')) as f:
         settings = yaml.load(f)
 
+    if "_" in args.name:
+        print "MAAS does not allow '_' in machine names"
+        exit(1)
+
     settings['machine_name'] = args.name
     settings['template'] = args.template
     settings['subnets'] = args.subnet
@@ -295,6 +299,13 @@ def check_known_cidrs(subnets, virsh_networks, maas_subnets):
         print 'it has: {}'.format([str(s) for s in sorted(maas_subnets.keys())])
     if unknown_in_virsh or unknown_in_maas:
         sys.exit(1)
+
+
+# TODO: add a check that the machine we are creating is on a subnet that is one
+#       of the managed cluster networks. Otherwise when the machine boots, it
+#       won't be able to PXE boot. Also, testing seems to indicate that eth0
+#       has to be the one PXE booting. I get "NO BOOTABLE DEVICES" if I make
+#       eth1 be on the 'maas' network.
 
 if __name__ == '__main__':
     settings = configure()
